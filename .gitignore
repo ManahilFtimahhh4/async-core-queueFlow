@@ -1,28 +1,20 @@
-# Dependencies
 node_modules/
-
-# Environment Variables
 .env
-
-# Logs
-logs/
-*.log
-npm-debug.log*
-
-# Runtime Files
-*.pid
-
-# OS Files
-.DS_Store
-Thumbs.db
-
-# IDE Files
-.vscode/
-.idea/
-
-# Build
+.env.local
+.env.*.local
 dist/
 build/
-
-# Coverage
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 coverage/
+.nyc_output/
+.cache/
