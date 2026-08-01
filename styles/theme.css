@@ -1,0 +1,286 @@
+/* Theme-specific overrides */
+
+/* Light Theme (default) */
+:root {
+    color-scheme: light;
+}
+
+/* Dark Theme */
+html[data-theme="dark"] {
+    color-scheme: dark;
+}
+
+html[data-theme="dark"] body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+html[data-theme="dark"] .sidebar {
+    background-color: var(--sidebar-bg);
+    color: var(--sidebar-text);
+}
+
+html[data-theme="dark"] .navbar {
+    background-color: var(--bg-secondary);
+    border-bottom-color: var(--border-color);
+}
+
+html[data-theme="dark"] .stat-card {
+    background-color: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+
+html[data-theme="dark"] .stat-value.skeleton {
+    background: linear-gradient(90deg, var(--border-color) 25%, rgba(51, 65, 85, 0.5) 50%, var(--border-color) 75%);
+}
+
+html[data-theme="dark"] .feature-card {
+    background-color: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+
+html[data-theme="dark"] .table-container {
+    background-color: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+
+html[data-theme="dark"] .data-table thead {
+    background-color: var(--bg-primary);
+    border-bottom-color: var(--border-color);
+}
+
+html[data-theme="dark"] .data-table tbody tr:hover {
+    background-color: var(--bg-primary);
+}
+
+html[data-theme="dark"] .chart-container {
+    background-color: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+
+html[data-theme="dark"] .search-container {
+    background-color: var(--bg-primary);
+    border-color: var(--border-color);
+}
+
+html[data-theme="dark"] .chart-filter {
+    background-color: var(--bg-primary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+html[data-theme="dark"] .btn-secondary {
+    background-color: var(--bg-primary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+html[data-theme="dark"] .btn-secondary:hover {
+    background-color: var(--bg-secondary);
+}
+
+html[data-theme="dark"] input,
+html[data-theme="dark"] textarea,
+html[data-theme="dark"] select {
+    background-color: var(--bg-secondary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+html[data-theme="dark"] input::placeholder,
+html[data-theme="dark"] textarea::placeholder {
+    color: var(--text-secondary);
+}
+
+html[data-theme="dark"] .empty-state {
+    color: var(--text-secondary);
+}
+
+html[data-theme="dark"] .error-state {
+    background-color: var(--danger-light);
+    border-color: var(--danger);
+}
+
+/* Chart Colors for Dark Mode */
+html[data-theme="dark"] canvas {
+    filter: brightness(1);
+}
+
+/* Scrollbar for Dark Theme */
+html[data-theme="dark"] ::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+}
+
+html[data-theme="dark"] ::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+}
+
+html[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
+}
+
+/* Dark mode specific text colors */
+html[data-theme="dark"] .page-title {
+    color: var(--text-primary);
+}
+
+html[data-theme="dark"] .page-subtitle {
+    color: var(--text-secondary);
+}
+
+html[data-theme="dark"] .stat-title {
+    color: var(--text-secondary);
+}
+
+html[data-theme="dark"] .stat-value {
+    color: var(--text-primary);
+}
+
+html[data-theme="dark"] .chart-title {
+    color: var(--text-primary);
+}
+
+html[data-theme="dark"] .table-title {
+    color: var(--text-primary);
+}
+
+html[data-theme="dark"] .feature-title {
+    color: var(--text-primary);
+}
+
+html[data-theme="dark"] .feature-desc {
+    color: var(--text-secondary);
+}
+
+html[data-theme="dark"] .table-link {
+    color: var(--primary);
+}
+
+html[data-theme="dark"] .table-link:hover {
+    color: #60a5fa;
+}
+
+html[data-theme="dark"] a {
+    color: var(--primary);
+}
+
+html[data-theme="dark"] a:hover {
+    color: #60a5fa;
+}
+
+/* Dark mode card hover states */
+html[data-theme="dark"] .stat-card:hover {
+    border-color: var(--primary);
+}
+
+html[data-theme="dark"] .feature-card:hover {
+    border-color: var(--primary);
+}
+
+html[data-theme="dark"] .table-container:hover {
+    border-color: var(--border-color);
+}
+
+html[data-theme="dark"] .chart-container:hover {
+    border-color: var(--border-color);
+}
+
+/* Selection styling for dark theme */
+html[data-theme="dark"] ::selection {
+    background-color: var(--primary);
+    color: white;
+}
+
+/* Navbar button dark mode */
+html[data-theme="dark"] .navbar-button:hover {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+html[data-theme="dark"] .navbar-button {
+    color: var(--text-secondary);
+}
+
+/* Status indicator colors remain consistent */
+html[data-theme="dark"] .status-indicator {
+    color: var(--text-secondary);
+}
+
+/* Notification badge */
+html[data-theme="dark"] .notification-badge {
+    border-color: var(--bg-secondary);
+}
+
+/* Search hint */
+html[data-theme="dark"] .search-hint {
+    background-color: var(--border-color);
+    color: var(--text-secondary);
+}
+
+/* Sidebar nav items */
+html[data-theme="dark"] .nav-item {
+    color: rgba(241, 245, 249, 0.7);
+}
+
+html[data-theme="dark"] .nav-item:hover {
+    background-color: var(--sidebar-hover);
+    color: var(--sidebar-text);
+}
+
+html[data-theme="dark"] .nav-item.active {
+    background-color: var(--primary);
+    color: white;
+}
+
+/* User profile card */
+html[data-theme="dark"] .user-profile {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+html[data-theme="dark"] .user-profile:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+html[data-theme="dark"] .user-name {
+    color: var(--sidebar-text);
+}
+
+html[data-theme="dark"] .user-role {
+    color: rgba(241, 245, 249, 0.6);
+}
+
+/* System status */
+html[data-theme="dark"] .system-status {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+html[data-theme="dark"] .status-text {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Theme toggle icon colors */
+html[data-theme="dark"] .theme-icon-sun,
+html[data-theme="dark"] .theme-icon-moon {
+    color: var(--text-secondary);
+}
+
+html[data-theme="dark"] .theme-toggle:hover .theme-icon-sun,
+html[data-theme="dark"] .theme-toggle:hover .theme-icon-moon {
+    color: var(--text-primary);
+}
+
+/* Ensure smooth transitions between themes */
+* {
+    transition: background-color var(--transition-base), border-color var(--transition-base), color var(--transition-base);
+}
+
+/* Except for animations that should not be interrupted */
+.pulse,
+.shimmer,
+.spin,
+.bounce,
+.wiggle,
+.blink,
+.heartbeat {
+    transition: none;
+}
