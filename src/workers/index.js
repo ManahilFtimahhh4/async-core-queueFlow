@@ -5,7 +5,8 @@
  */
 
 import { createRedisConnection, closeRedisConnection } from '../config/redis.js';
-import { createWorker } from '../config/bullmq.js';
+import { createQueue } from '../config/bullmq.js';
+import { initializeEmailWorker } from './emailWorker.js';
 import { QUEUE_NAMES } from '../queues/index.js';
 import { logger } from '../utils/logger.js';
 
@@ -15,14 +16,12 @@ const initializeWorkers = () => {
   // Create Redis connection for workers
   createRedisConnection();
 
-  // Register workers for each queue
-  // Example: email worker (processor function will be added later)
-  const emailWorker = createWorker(QUEUE_NAMES.email, async (job) => {
-    logger.info(`Processing email job [${job.id}]:`, job.data);
-    // Email logic will be implemented here
-    return { processed: true };
-  });
+  // Initialize Dead Letter Queue
+  createQueue(QUEUE_NAMES.emailDLQ);
+  logger.info('Dead Letter Queue initialized:', QUEUE_NAMES.emailDLQ);
 
+  // Initialize email worker
+  const emailWorker = initializeEmailWorker();
   workers.push(emailWorker);
 
   logger.info('All workers initialized');
@@ -46,3 +45,4 @@ process.on('SIGINT', shutdownWorkers);
 // Start workers
 initializeWorkers();
 logger.info('Worker process started');
+

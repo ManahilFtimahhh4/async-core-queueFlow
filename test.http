@@ -1,0 +1,126 @@
+### Async Core - Testing Workflow
+### Use this file with VS Code REST Client extension
+### Or copy individual requests to curl commands
+
+### ============================================
+### SECTION 1: Health Checks
+### ============================================
+
+### Check Server Health
+GET http://localhost:3000/health
+Content-Type: application/json
+
+### Check Queue Health
+GET http://localhost:3000/api/queue/health
+Content-Type: application/json
+
+### ============================================
+### SECTION 2: Submit Email Jobs
+### ============================================
+
+### Submit Bulk Emails (2 recipients)
+POST http://localhost:3000/api/jobs/email/jobs
+Content-Type: application/json
+
+{
+  "recipients": ["alice@example.com", "bob@example.com"],
+  "subject": "Welcome to Async Core",
+  "message": "This is a test email from the background processing system"
+}
+
+### Submit Single Email
+POST http://localhost:3000/api/jobs/email/jobs
+Content-Type: application/json
+
+{
+  "recipients": ["test@example.com"],
+  "subject": "Single Test Email",
+  "message": "Testing single email submission"
+}
+
+### Submit Many Emails (10 recipients)
+POST http://localhost:3000/api/jobs/email/jobs
+Content-Type: application/json
+
+{
+  "recipients": [
+    "user1@example.com",
+    "user2@example.com",
+    "user3@example.com",
+    "user4@example.com",
+    "user5@example.com",
+    "user6@example.com",
+    "user7@example.com",
+    "user8@example.com",
+    "user9@example.com",
+    "user10@example.com"
+  ],
+  "subject": "Bulk Email Test",
+  "message": "Testing bulk email submission with 10 recipients"
+}
+
+### ============================================
+### SECTION 3: Email Queue Statistics
+### ============================================
+
+### Get Email Queue Stats (Main Queue)
+GET http://localhost:3000/api/jobs/email/stats
+Content-Type: application/json
+
+### Get Queue Health Check
+GET http://localhost:3000/api/queue/stats
+Content-Type: application/json
+
+### ============================================
+### SECTION 4: Job Status Tracking
+### ============================================
+### Note: Replace JOB_ID with actual job ID from submission response
+
+### Get Job Status - Example (replace JOB_ID)
+GET http://localhost:3000/api/jobs/email/jobs/email-1234567890-abc123
+Content-Type: application/json
+
+### ============================================
+### SECTION 5: Error Testing
+### ============================================
+
+### Missing Recipients (should fail with 400)
+POST http://localhost:3000/api/jobs/email/jobs
+Content-Type: application/json
+
+{
+  "subject": "No Recipients",
+  "message": "This should fail"
+}
+
+### Empty Recipients Array (should fail with 400)
+POST http://localhost:3000/api/jobs/email/jobs
+Content-Type: application/json
+
+{
+  "recipients": [],
+  "subject": "Empty Recipients",
+  "message": "This should fail"
+}
+
+### Missing Subject (should fail with 400)
+POST http://localhost:3000/api/jobs/email/jobs
+Content-Type: application/json
+
+{
+  "recipients": ["test@example.com"],
+  "message": "No subject"
+}
+
+### Missing Message (should fail with 400)
+POST http://localhost:3000/api/jobs/email/jobs
+Content-Type: application/json
+
+{
+  "recipients": ["test@example.com"],
+  "subject": "No Message"
+}
+
+### Invalid Job ID (should fail with 404)
+GET http://localhost:3000/api/jobs/email/jobs/invalid-job-id-12345
+Content-Type: application/json

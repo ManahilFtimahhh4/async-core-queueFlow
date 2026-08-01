@@ -1,0 +1,204 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                     ASYNC CORE - QUICK TEST REFERENCE                        ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+📋 ONE-LINE COMMANDS
+
+PowerShell (Windows):
+  .\test-api.ps1 -Test all
+
+Bash (macOS/Linux):
+  bash test-api.sh all
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🌐 CURL QUICK COMMANDS
+
+Health Check:
+  curl http://localhost:3000/health
+
+Submit 2 Emails:
+  curl -X POST http://localhost:3000/api/jobs/email/jobs \
+    -H "Content-Type: application/json" \
+    -d '{"recipients":["alice@example.com","bob@example.com"],"subject":"Hi","message":"Test"}'
+
+Queue Stats:
+  curl http://localhost:3000/api/jobs/email/stats
+
+Check Job (replace JOB_ID):
+  curl http://localhost:3000/api/jobs/email/jobs/JOB_ID
+
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ AVAILABLE ENDPOINTS
+
+GET /health
+  Server health check
+
+GET /api/queue/health
+  Queue health status
+
+POST /api/jobs/email/jobs
+  Submit emails (creates one job per recipient)
+  Body: {"recipients":[], "subject":"", "message":""}
+  Returns: {"data":{"totalJobs":X, "jobIds":[]}}
+
+GET /api/jobs/email/jobs/:jobId
+  Get job status by ID
+
+GET /api/jobs/email/stats
+  Queue statistics (waiting, active, completed, failed, delayed)
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🧪 TESTING SCENARIOS
+
+Scenario 1: Basic Submission
+  1. curl http://localhost:3000/health
+  2. curl -X POST http://localhost:3000/api/jobs/email/jobs -H "Content-Type: application/json" -d '{"recipients":["test@example.com"],"subject":"Hello","message":"Test"}'
+  3. curl http://localhost:3000/api/jobs/email/stats
+  4. curl http://localhost:3000/api/jobs/email/jobs/JOB_ID
+
+Scenario 2: Bulk Submission
+  1. Submit with 10 recipients (creates 10 jobs)
+  2. Monitor stats as jobs are processed
+  3. Check individual job statuses
+
+Scenario 3: Error Testing
+  1. POST without recipients field (400 error)
+  2. POST with empty recipients (400 error)
+  3. GET invalid job ID (404 error)
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📊 EXPECTED RESPONSES
+
+Success (201/202):
+  {
+    "success": true,
+    "message": "Jobs queued successfully",
+    "data": {
+      "totalJobs": 2,
+      "jobIds": ["emailXXXXXX1abc", "emailXXXXXX2def"]
+    }
+  }
+
+Job Status:
+  {
+    "success": true,
+    "data": {
+      "id": "emailXXXXXXXX",
+      "recipient": "user@example.com",
+      "status": "completed",
+      "attempts": 1,
+      "maxAttempts": 3
+    }
+  }
+
+Queue Stats:
+  {
+    "success": true,
+    "data": {
+      "waiting": 0,
+      "active": 0,
+      "completed": 2,
+      "failed": 0,
+      "delayed": 0
+    }
+  }
+
+Error (400):
+  {
+    "success": false,
+    "error": {
+      "message": "Recipients must be a non-empty array"
+    }
+  }
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🎯 WORKFLOW
+
+1. Submit Email
+   POST /api/jobs/email/jobs
+   
+2. Get Job IDs from response
+   Extract from: response.data.jobIds[0]
+   
+3. Check Stats Immediately
+   GET /api/jobs/email/stats
+   Should show: "waiting": 2 or "active": 1
+   
+4. Wait 1-2 Seconds
+   Jobs are processing
+   
+5. Check Stats Again
+   GET /api/jobs/email/stats
+   Should show: "completed": 2
+   
+6. Check Individual Job
+   GET /api/jobs/email/jobs/{jobId}
+   Should show: "status": "completed"
+
+═══════════════════════════════════════════════════════════════════════════════
+
+⚡ PERFORMANCE EXPECTATIONS
+
+Job Processing Time: ~500ms per job (simulated)
+Concurrent Processing: 5 jobs at a time
+Retry Delays:
+  - Attempt 2: 2000ms (2 seconds) after failure
+  - Attempt 3: 4000ms (4 seconds) after second failure
+Maximum Retries: 3
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🔧 TROUBLESHOOTING
+
+Issue: Connection refused
+  → Check: redis-cli ping
+  → Check: npm run dev in Terminal 1
+  → Check: npm run worker:dev in Terminal 2
+
+Issue: 500 Internal Server Error
+  → Check server terminal for error logs
+  → Check that Redis is running
+  → Try with simpler request
+
+Issue: Job stuck in "delayed"
+  → Wait for retry delay (2-4 seconds)
+  → Check worker terminal logs
+  → This is expected behavior during retries
+
+Issue: Job ID not found (404)
+  → Copy exact job ID from submission response
+  → Job may have been removed (removeOnComplete: true)
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📍 FILES CREATED
+
+test.http              - REST Client requests (VS Code)
+test-api.ps1           - PowerShell script
+test-api.sh            - Bash script
+TESTING.md             - Full documentation
+TESTING_SUMMARY.txt    - Detailed summary
+QUICK_TEST.txt         - This file
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🚀 START TESTING NOW
+
+Windows (PowerShell):
+  .\test-api.ps1 -Test all
+
+macOS/Linux (Bash):
+  bash test-api.sh all
+
+VS Code:
+  Open test.http → Click "Send Request"
+
+Command Line (Any OS):
+  curl http://localhost:3000/health
+
+═══════════════════════════════════════════════════════════════════════════════

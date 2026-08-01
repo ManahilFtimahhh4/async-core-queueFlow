@@ -2,24 +2,50 @@ import 'dotenv/config.js';
 
 /**
  * Environment Validation & Configuration
- * Ensures all required environment variables are set at startup
+ * Ensures all critical environment variables are set at startup
+ * Variables with defaults are optional
  */
 
-const requiredEnvVars = [
+// Critical variables that must be explicitly set (no defaults)
+const REQUIRED_ENV_VARS = [
   'NODE_ENV',
-  'PORT',
-  'REDIS_HOST',
-  'REDIS_PORT',
 ];
 
+// Variables that should be set, with fallback defaults
+const CRITICAL_VARS_WITH_DEFAULTS = {
+  PORT: '3000',
+  REDIS_HOST: 'localhost',
+  REDIS_PORT: '6379',
+};
+
 const validateEnv = () => {
-  const missing = requiredEnvVars.filter((key) => !process.env[key]);
+  // Check for critical variables without defaults
+  const missing = REQUIRED_ENV_VARS.filter((key) => !process.env[key]);
 
   if (missing.length > 0) {
     throw new Error(
       `Missing required environment variables: ${missing.join(', ')}\n` +
       'See .env.example for configuration template'
     );
+  }
+
+  // Warn about critical variables that fall back to defaults
+  const usingDefaults = [];
+  Object.entries(CRITICAL_VARS_WITH_DEFAULTS).forEach(([key, defaultValue]) => {
+    if (!process.env[key]) {
+      usingDefaults.push(`${key} (using default: ${defaultValue})`);
+    }
+  });
+
+  if (usingDefaults.length > 0 && process.env.NODE_ENV === 'production') {
+    throw new Error(
+      `Critical variables missing in production: ${usingDefaults.join(', ')}\n` +
+      'In production, all critical variables must be explicitly set.'
+    );
+  }
+
+  if (usingDefaults.length > 0 && process.env.NODE_ENV === 'development') {
+    // Silent fallback in development (defaults are acceptable)
   }
 };
 
