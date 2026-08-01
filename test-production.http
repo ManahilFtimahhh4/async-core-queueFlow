@@ -1,0 +1,216 @@
+### Async Core - Production Phase Testing
+### REST Client requests for phase 3 production features
+
+### ============================================
+### HEALTH CHECKS
+### ============================================
+
+### Quick Health Check
+GET http://localhost:3000/health
+
+### Detailed Health Check
+GET http://localhost:3000/api/queue/health
+
+### ============================================
+### EMAIL QUEUE - JOB SUBMISSION
+### ============================================
+
+### Submit 2 Email Jobs
+POST http://localhost:3000/api/jobs/email/jobs
+Content-Type: application/json
+
+{
+  "recipients": ["alice@example.com", "bob@example.com"],
+  "subject": "Welcome to Async Core",
+  "message": "This is a production-grade background processing system demonstration"
+}
+
+### Submit Single Email
+POST http://localhost:3000/api/jobs/email/jobs
+Content-Type: application/json
+
+{
+  "recipients": ["test@example.com"],
+  "subject": "Single Email Test",
+  "message": "Testing single email submission"
+}
+
+### Submit Bulk Emails (20 recipients)
+POST http://localhost:3000/api/jobs/email/jobs
+Content-Type: application/json
+
+{
+  "recipients": [
+    "user1@example.com",
+    "user2@example.com",
+    "user3@example.com",
+    "user4@example.com",
+    "user5@example.com",
+    "user6@example.com",
+    "user7@example.com",
+    "user8@example.com",
+    "user9@example.com",
+    "user10@example.com",
+    "user11@example.com",
+    "user12@example.com",
+    "user13@example.com",
+    "user14@example.com",
+    "user15@example.com",
+    "user16@example.com",
+    "user17@example.com",
+    "user18@example.com",
+    "user19@example.com",
+    "user20@example.com"
+  ],
+  "subject": "Production Bulk Email",
+  "message": "This demonstrates processing multiple jobs in parallel"
+}
+
+### ============================================
+### EMAIL QUEUE - JOB STATUS
+### ============================================
+
+### Get Job Status (replace JOB_ID with actual ID)
+GET http://localhost:3000/api/jobs/email/jobs/email1234567890sample1abc
+
+### Get Email Queue Stats
+GET http://localhost:3000/api/jobs/email/stats
+
+### ============================================
+### DASHBOARD - MONITORING
+### ============================================
+
+### Get Dashboard Overview
+GET http://localhost:3000/api/dashboard/overview
+
+### Get Queue Overview (Queues and DLQ)
+GET http://localhost:3000/api/dashboard/queues
+
+### Get Redis Status
+GET http://localhost:3000/api/dashboard/redis
+
+### Get Performance Metrics
+GET http://localhost:3000/api/dashboard/metrics
+
+### Get Job History (Recent 20 jobs)
+GET http://localhost:3000/api/dashboard/history
+
+### Get Job History (Custom limit)
+GET http://localhost:3000/api/dashboard/history?limit=50
+
+### Get Dead Letter Queue Jobs
+GET http://localhost:3000/api/dashboard/dlq
+
+### Get DLQ with Custom Limit
+GET http://localhost:3000/api/dashboard/dlq?limit=50
+
+### ============================================
+### ERROR TESTING
+### ============================================
+
+### Missing Recipients
+POST http://localhost:3000/api/jobs/email/jobs
+Content-Type: application/json
+
+{
+  "subject": "No Recipients",
+  "message": "Should fail"
+}
+
+### Empty Recipients Array
+POST http://localhost:3000/api/jobs/email/jobs
+Content-Type: application/json
+
+{
+  "recipients": [],
+  "subject": "Empty Recipients",
+  "message": "Should fail"
+}
+
+### Missing Subject
+POST http://localhost:3000/api/jobs/email/jobs
+Content-Type: application/json
+
+{
+  "recipients": ["test@example.com"],
+  "message": "No subject"
+}
+
+### Missing Message
+POST http://localhost:3000/api/jobs/email/jobs
+Content-Type: application/json
+
+{
+  "recipients": ["test@example.com"],
+  "subject": "No Message"
+}
+
+### Invalid Job ID
+GET http://localhost:3000/api/jobs/email/jobs/invalid-job-id
+
+### ============================================
+### DASHBOARD WORKFLOW
+### ============================================
+
+### 1. Submit emails first
+POST http://localhost:3000/api/jobs/email/jobs
+Content-Type: application/json
+
+{
+  "recipients": ["demo1@example.com", "demo2@example.com"],
+  "subject": "Demo Email",
+  "message": "Demonstrating the production queue system"
+}
+
+### 2. Check overview immediately
+GET http://localhost:3000/api/dashboard/overview
+
+### 3. Check queues
+GET http://localhost:3000/api/dashboard/queues
+
+### 4. Check performance
+GET http://localhost:3000/api/dashboard/metrics
+
+### 5. Check history
+GET http://localhost:3000/api/dashboard/history?limit=10
+
+### 6. Check job status by ID (from step 1 response)
+GET http://localhost:3000/api/jobs/email/jobs/email1234567890sample1abc
+
+### 7. After jobs complete, check DLQ (if any failed)
+GET http://localhost:3000/api/dashboard/dlq
+
+### ============================================
+### STRESS TEST
+### ============================================
+
+### Submit 50 emails for stress testing
+POST http://localhost:3000/api/jobs/email/jobs
+Content-Type: application/json
+
+{
+  "recipients": [
+    "stress1@example.com", "stress2@example.com", "stress3@example.com",
+    "stress4@example.com", "stress5@example.com", "stress6@example.com",
+    "stress7@example.com", "stress8@example.com", "stress9@example.com",
+    "stress10@example.com", "stress11@example.com", "stress12@example.com",
+    "stress13@example.com", "stress14@example.com", "stress15@example.com",
+    "stress16@example.com", "stress17@example.com", "stress18@example.com",
+    "stress19@example.com", "stress20@example.com", "stress21@example.com",
+    "stress22@example.com", "stress23@example.com", "stress24@example.com",
+    "stress25@example.com", "stress26@example.com", "stress27@example.com",
+    "stress28@example.com", "stress29@example.com", "stress30@example.com",
+    "stress31@example.com", "stress32@example.com", "stress33@example.com",
+    "stress34@example.com", "stress35@example.com", "stress36@example.com",
+    "stress37@example.com", "stress38@example.com", "stress39@example.com",
+    "stress40@example.com", "stress41@example.com", "stress42@example.com",
+    "stress43@example.com", "stress44@example.com", "stress45@example.com",
+    "stress46@example.com", "stress47@example.com", "stress48@example.com",
+    "stress49@example.com", "stress50@example.com"
+  ],
+  "subject": "Stress Test Email",
+  "message": "Testing system under load with 50 parallel jobs"
+}
+
+### Monitor stress test
+GET http://localhost:3000/api/dashboard/overview

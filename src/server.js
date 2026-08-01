@@ -1,8 +1,3 @@
-/**
- * Async Core - Background Processing System
- * Main Express Server
- */
-
 import express from 'express';
 import compression from 'compression';
 import cors from 'cors';
@@ -12,6 +7,7 @@ import { closeAllQueues } from './config/bullmq.js';
 import { logger } from './utils/logger.js';
 import { loggingMiddleware } from './middleware/logging.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
+import { getQuickHealth } from './controllers/healthController.js';
 import routes from './routes/index.js';
 
 const app = express();
@@ -26,18 +22,9 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use(loggingMiddleware);
 
 /**
- * Health Check
+ * Quick Health Check (lightweight)
  */
-app.get('/health', (req, res) => {
-  res.status(200).json({
-    success: true,
-    data: {
-      status: 'healthy',
-      service: config.app.name,
-      timestamp: new Date().toISOString(),
-    },
-  });
-});
+app.get('/health', getQuickHealth);
 
 /**
  * API Routes

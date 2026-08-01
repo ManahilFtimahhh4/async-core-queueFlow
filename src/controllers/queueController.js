@@ -11,7 +11,7 @@ export const getHealthStatus = async (req, res, next) => {
       success: true,
       data: {
         status: 'healthy',
-        service: 'Async Core',
+        service: 'Async Core Queue',
         timestamp: new Date().toISOString(),
       },
     });
@@ -25,7 +25,7 @@ export const getQueueStats = async (req, res, next) => {
     res.status(200).json({
       success: true,
       data: {
-        message: 'Queue statistics endpoint - coming soon',
+        message: 'Use GET /api/dashboard/queues for detailed queue statistics',
       },
     });
   } catch (err) {

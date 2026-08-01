@@ -41,7 +41,7 @@ export const submitEmails = async (req, res, next) => {
     // Submit jobs (one per recipient)
     const jobs = await submitEmailJobs(recipients, subject, message);
 
-    logger.info(`Email submission successful:`, {
+    logger.info(`Email submission successful`, {
       totalJobs: jobs.length,
       recipients: recipients.length,
     });
@@ -52,10 +52,12 @@ export const submitEmails = async (req, res, next) => {
       data: {
         totalJobs: jobs.length,
         jobIds: jobs.map((job) => job.id),
+        recipients: recipients.length,
+        timestamp: new Date().toISOString(),
       },
     });
   } catch (err) {
-    logger.error('Email submission failed:', err);
+    logger.error('Email submission failed', { error: err.message });
     next(err);
   }
 };
@@ -80,7 +82,7 @@ export const getJobStatus = async (req, res, next) => {
       data: jobStatus,
     });
   } catch (err) {
-    logger.error(`Get job status failed [${req.params.jobId}]:`, err);
+    logger.error(`Get job status failed`, { jobId: req.params.jobId, error: err.message });
 
     if (err.message.includes('not found')) {
       return res.status(404).json({
@@ -101,10 +103,14 @@ export const getQueueStats = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      data: stats,
+      data: {
+        ...stats,
+        total: Object.values(stats).reduce((a, b) => a + b, 0),
+        timestamp: new Date().toISOString(),
+      },
     });
   } catch (err) {
-    logger.error('Get queue stats failed:', err);
+    logger.error('Get queue stats failed', { error: err.message });
     next(err);
   }
 };

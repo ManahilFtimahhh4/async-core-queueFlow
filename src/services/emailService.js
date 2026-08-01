@@ -1,5 +1,6 @@
 import { createQueue } from '../config/bullmq.js';
 import { QUEUE_NAMES } from '../queues/index.js';
+import { metricsService } from './metricsService.js';
 import { logger } from '../utils/logger.js';
 
 /**
@@ -22,6 +23,7 @@ export const submitEmailJobs = async (recipients, subject, message) => {
           recipient,
           subject,
           message,
+          createdAt: new Date().toISOString(),
         },
         {
           removeOnComplete: true,
@@ -38,7 +40,7 @@ export const submitEmailJobs = async (recipients, subject, message) => {
 
     const jobs = await Promise.all(jobPromises);
 
-    logger.info(`Email jobs submitted:`, {
+    logger.info(`Email jobs submitted`, {
       totalJobs: jobs.length,
       recipients: recipients.length,
       jobIds: jobs.map((job) => job.id),
@@ -46,7 +48,7 @@ export const submitEmailJobs = async (recipients, subject, message) => {
 
     return jobs;
   } catch (err) {
-    logger.error('Failed to submit email jobs:', err);
+    logger.error('Failed to submit email jobs', { error: err.message });
     throw err;
   }
 };
@@ -72,9 +74,12 @@ export const getEmailJobStatus = async (jobId) => {
       attempts: job.attemptsMade,
       maxAttempts: job.opts.attempts,
       failedReason: job.failedReason,
+      createdAt: job.data.createdAt,
+      startedOn: job.startedOn,
+      finishedOn: job.finishedOn,
     };
   } catch (err) {
-    logger.error(`Failed to get email job status [${jobId}]:`, err);
+    logger.error(`Failed to get email job status`, { jobId, error: err.message });
     throw err;
   }
 };
@@ -93,7 +98,7 @@ export const getEmailQueueStats = async () => {
       delayed: counts.delayed,
     };
   } catch (err) {
-    logger.error('Failed to get email queue stats:', err);
+    logger.error('Failed to get email queue stats', { error: err.message });
     throw err;
   }
 };
