@@ -30,14 +30,18 @@ class DashboardApplication {
                 return;
             }
 
+            // Initialize charts manager if not done
             if (!window.chartsManager) {
-                console.error('Charts manager not initialized');
-                return;
+                console.log('Initializing charts manager');
+                window.chartsManager = new ChartsManager();
+                await window.chartsManager.initCharts();
             }
 
+            // Initialize dashboard manager if not done
             if (!window.dashboardManager) {
-                console.error('Dashboard manager not initialized');
-                return;
+                console.log('Initializing dashboard manager');
+                window.dashboardManager = new DashboardManager();
+                await window.dashboardManager.init();
             }
 
             // Store references

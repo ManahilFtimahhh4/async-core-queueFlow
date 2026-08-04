@@ -1,14 +1,15 @@
-import { Queue, Worker } from 'bullmq';
+import Queue from 'bull';
 import { config } from './env.js';
 import { getRedisConnection } from './redis.js';
 import { logger } from '../utils/logger.js';
 
 /**
- * BullMQ Configuration & Queue Registry
+ * Bull Configuration & Queue Registry
  * Centralized queue setup with connection pooling and error handling
  */
 
 const queues = new Map();
+const workers = new Map();
 
 export const createQueue = (queueName) => {
   // Return existing queue if already created
@@ -16,13 +17,13 @@ export const createQueue = (queueName) => {
     return queues.get(queueName);
   }
 
+  // Bull uses simpler configuration
   const queue = new Queue(queueName, {
-    connection: getRedisConnection(),
-    settings: {
-      stalledInterval: 5000,
-      maxStalledCount: 2,
-      lockDuration: 30000,
-      lockRenewTime: 15000,
+    redis: {
+      host: config.redis.host,
+      port: config.redis.port,
+      db: config.redis.db,
+      password: config.redis.password,
     },
   });
 
@@ -55,36 +56,31 @@ export const closeAllQueues = async () => {
 };
 
 /**
- * Create worker with standard configuration
- * Workers are separate from queues and can be run in separate processes
+ * Create worker (processor) with standard configuration
+ * Bull processes jobs with queue.process()
  */
 export const createWorker = (queueName, processor) => {
-  const worker = new Worker(queueName, processor, {
-    connection: getRedisConnection(),
-    concurrency: config.queue.concurrency,
-    settings: {
-      stalledInterval: 5000,
-      maxStalledCount: 2,
-      lockDuration: 30000,
-      lockRenewTime: 15000,
-    },
+  // Ensure queue is created first
+  const queue = createQueue(queueName);
+  
+  // Bull uses queue.process() for workers
+  queue.process(config.queue.concurrency || 1, processor);
+
+  queue.on('error', (err) => {
+    logger.error(`Queue [${queueName}] error:`, err);
   });
 
-  worker.on('error', (err) => {
-    logger.error(`Worker [${queueName}] error:`, err);
-  });
-
-  worker.on('failed', (job, err) => {
+  queue.on('failed', (job, err) => {
     logger.warn(`Job [${job.id}] failed:`, err.message);
   });
 
-  worker.on('completed', (job) => {
+  queue.on('completed', (job) => {
     logger.info(`Job [${job.id}] completed`);
   });
 
   logger.info(`Worker started for queue: ${queueName}`);
 
-  return worker;
+  return queue;
 };
 
 export default {

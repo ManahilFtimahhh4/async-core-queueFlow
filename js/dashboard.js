@@ -121,14 +121,24 @@ class DashboardManager {
         }
 
         const html = jobs.map(job => {
-            const createdAt = new Date(job.createdAt).toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-            });
+            let createdAt = 'N/A';
+            try {
+                const date = new Date(job.createdAt || job.data?.createdAt || job.startedOn);
+                if (!isNaN(date.getTime())) {
+                    createdAt = date.toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                    });
+                }
+            } catch (e) {
+                console.error('Date parsing error:', e);
+            }
 
-            const statusBadgeClass = this.getStatusBadgeClass(job.status);
+            // Normalize status - handle both 'state' and 'status' fields
+            const jobStatus = job.state || job.status || 'unknown';
+            const statusBadgeClass = this.getStatusBadgeClass(jobStatus);
 
             return `
                 <tr>
@@ -136,7 +146,7 @@ class DashboardManager {
                     <td>${job.type || 'email'}</td>
                     <td>
                         <span class="status-badge ${statusBadgeClass}">
-                            ${this.capitalizeStatus(job.status)}
+                            ${this.capitalizeStatus(jobStatus)}
                         </span>
                     </td>
                     <td>${createdAt}</td>
@@ -166,8 +176,8 @@ class DashboardManager {
         }
 
         const html = jobs.map(job => {
-            const attempts = job.attempt || 0;
-            const maxAttempts = job.maxAttempts || 3;
+            const attempts = job.attempts || 0;
+            const maxAttempts = job.data?.maxAttempts || job.maxAttempts || 3;
 
             return `
                 <tr>
@@ -190,6 +200,7 @@ class DashboardManager {
      * Get status badge class
      */
     getStatusBadgeClass(status) {
+        const normalizedStatus = (status || '').toLowerCase();
         const statusMap = {
             'completed': 'completed',
             'active': 'active',
@@ -199,7 +210,7 @@ class DashboardManager {
             'delayed': 'pending',
             'paused': 'pending',
         };
-        return statusMap[status] || 'pending';
+        return statusMap[normalizedStatus] || 'pending';
     }
 
     /**
@@ -215,7 +226,8 @@ class DashboardManager {
             'delayed': 'Delayed',
             'paused': 'Paused',
         };
-        return statusMap[status] || status.charAt(0).toUpperCase() + status.slice(1);
+        const normalizedStatus = status?.toLowerCase() || 'unknown';
+        return statusMap[normalizedStatus] || normalizedStatus.charAt(0).toUpperCase() + normalizedStatus.slice(1);
     }
 
     /**
@@ -261,6 +273,28 @@ class DashboardManager {
             newJobBtn.addEventListener('click', () => this.handleNewJob());
         }
 
+        // View All links on dashboard
+        const viewAllLinks = document.querySelectorAll('.table-link');
+        viewAllLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const table = link.closest('.table-container');
+                if (table && table.querySelector('#recentJobsTable')) {
+                    // Navigate to all jobs page
+                    const jobsItem = Array.from(document.querySelectorAll('.nav-item')).find(
+                        item => item.getAttribute('data-page') === 'jobs'
+                    );
+                    if (jobsItem) jobsItem.click();
+                } else if (table && table.querySelector('#failedJobsDetailTable')) {
+                    // Navigate to failed jobs page
+                    const failedItem = Array.from(document.querySelectorAll('.nav-item')).find(
+                        item => item.getAttribute('data-page') === 'failed'
+                    );
+                    if (failedItem) failedItem.click();
+                }
+            });
+        });
+
         // Chart filter
         const chartFilter = document.querySelector('.chart-filter');
         if (chartFilter) {
@@ -292,9 +326,15 @@ class DashboardManager {
      * Handle new job button click
      */
     handleNewJob() {
-        // Show modal or navigate to add job page
-        console.log('New job clicked');
-        // TODO: Implement new job modal/form
+        // Navigate to add-job page
+        if (window.sidebarManager) {
+            const addJobItem = Array.from(document.querySelectorAll('.nav-item')).find(
+                item => item.getAttribute('data-page') === 'add-job'
+            );
+            if (addJobItem) {
+                addJobItem.click();
+            }
+        }
     }
 
     /**

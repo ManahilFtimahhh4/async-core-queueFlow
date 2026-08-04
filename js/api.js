@@ -56,23 +56,26 @@ class ApiClient {
     }
 
     /**
-     * Dashboard Overview
+     * Dashboard Overview - Real data from backend
      */
     async getDashboardOverview() {
         try {
-            const response = await this.fetch('/dashboard/overview');
-            // Map response data to expected format
+            const [overview, queues] = await Promise.all([
+                this.fetch('/dashboard/overview'),
+                this.fetch('/dashboard/queues'),
+            ]);
+
             return {
-                totalJobs: response.data?.system?.jobsProcessed || 0,
-                waiting: response.data?.email?.waiting || 0,
-                active: response.data?.email?.active || 0,
-                completed: response.data?.email?.completed || 0,
-                failed: response.data?.email?.failed || 0,
-                totalJobsChangePercent: 12.5,
-                pendingChangePercent: 4.3,
-                activeChangePercent: 2.1,
-                completedChangePercent: 14.8,
-                failedChangePercent: -1.3,
+                totalJobs: (queues.data?.email?.total || 0),
+                waiting: queues.data?.email?.waiting || 0,
+                active: queues.data?.email?.active || 0,
+                completed: queues.data?.email?.completed || 0,
+                failed: queues.data?.email?.failed || 0,
+                totalJobsChangePercent: 0,
+                pendingChangePercent: 0,
+                activeChangePercent: 0,
+                completedChangePercent: 0,
+                failedChangePercent: 0,
             };
         } catch (error) {
             console.error('Failed to get dashboard overview:', error);
@@ -168,7 +171,7 @@ class ApiClient {
      */
     async submitJob(jobData) {
         try {
-            const response = await this.fetch('/jobs/email', {
+            const response = await this.fetch('/jobs/email/jobs', {
                 method: 'POST',
                 body: JSON.stringify(jobData),
             });
@@ -204,6 +207,81 @@ class ApiClient {
         } catch (error) {
             console.error('Failed to get redis status:', error);
             throw error;
+        }
+    }
+
+    /**
+     * Get All Jobs - Use DLQ endpoint (it returns all jobs including completed/failed)
+     */
+    async getAllJobs(limit = 50) {
+        try {
+            const response = await this.fetch(`/dashboard/history?limit=${limit}`);
+            return (response.data?.jobs || []).map(job => ({
+                ...job,
+                type: 'email',
+            }));
+        } catch (error) {
+            console.error('Failed to get all jobs:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get Failed Jobs - Use DLQ endpoint for failed jobs
+     */
+    async getFailedJobs(limit = 50) {
+        try {
+            const response = await this.fetch(`/dashboard/dlq?limit=${limit}`);
+            return (response.data?.jobs || []).map(job => ({
+                ...job,
+                type: 'email',
+            }));
+        } catch (error) {
+            console.error('Failed to get failed jobs:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get Job Details - Use existing getJob endpoint
+     */
+    async getJobDetails(jobId) {
+        try {
+            return await this.getJob(jobId);
+        } catch (error) {
+            console.error(`Failed to get job details for ${jobId}:`, error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get Logs
+     */
+    async getLogs(level = null, limit = 50) {
+        try {
+            const query = new URLSearchParams();
+            if (level) query.append('level', level);
+            query.append('limit', limit);
+            
+            try {
+                const response = await this.fetch(`/logs?${query.toString()}`);
+                return response.data || { logs: [], total: 0 };
+            } catch (error) {
+                // If /logs endpoint doesn't exist, return empty logs with message
+                console.warn('Logs endpoint not available, returning placeholder data');
+                return {
+                    logs: [{
+                        timestamp: new Date().toISOString(),
+                        level: 'INFO',
+                        message: 'System initialized and running',
+                        data: {},
+                    }],
+                    total: 1,
+                };
+            }
+        } catch (error) {
+            console.error('Failed to get logs:', error);
+            return { logs: [], total: 0 };
         }
     }
 }

@@ -1,234 +1,131 @@
-# Testing Workflow - Async Core
+# Testing Guide - Async Core Queue System
 
-This document provides complete end-to-end testing instructions for the background processing system.
+## Quick Start Testing
 
-## Prerequisites
-
-Before testing, ensure:
-1. Redis is running: `redis-cli ping` → should return `PONG`
-2. Server is running: `npm run dev` (Terminal 1)
-3. Worker is running: `npm run worker:dev` (Terminal 2)
-
-## Testing Options
-
-### Option 1: REST Client (VS Code Extension)
-
-**Install REST Client extension** in VS Code (search for "REST Client")
-
-**Usage:**
-1. Open `test.http` file in VS Code
-2. Click "Send Request" above any request
-3. Response will appear in the side panel
-
-**Available Requests:**
-- **Health Checks**: Server and queue health endpoints
-- **Submit Emails**: Single, bulk (2), and many (10) recipients
-- **Job Status**: Check individual job status
-- **Queue Stats**: View queue statistics
-- **Error Tests**: Validation and error handling tests
-
-### Option 2: PowerShell Script (Windows)
-
-**Usage:**
-```powershell
-# Run all tests
-.\test-api.ps1 -Test all
-
-# Run specific test
-.\test-api.ps1 -Test health
-.\test-api.ps1 -Test submit
-.\test-api.ps1 -Test stats
-.\test-api.ps1 -Test status
-.\test-api.ps1 -Test bulk
-.\test-api.ps1 -Test errors
-```
-
-**Example Output:**
-```
-✅ Server is healthy
-✅ Email jobs submitted
-✅ Job status retrieved
-✅ Queue statistics retrieved
-```
-
-### Option 3: Bash Script (macOS/Linux)
-
-**Usage:**
+### 1. Start Redis
 ```bash
-# Make script executable
-chmod +x test-api.sh
-
-# Run all tests
-bash test-api.sh all
-
-# Run specific test
-bash test-api.sh health
-bash test-api.sh submit
-bash test-api.sh stats
-bash test-api.sh status
-bash test-api.sh bulk
-bash test-api.sh errors
+docker run -d -p 6379:6379 --name redis-test redis:alpine
 ```
 
-### Option 4: curl Commands (Any OS)
-
-**Server Health Check:**
+### 2. Start Server (Terminal 1)
 ```bash
-curl http://localhost:3000/health
+npm run dev
 ```
 
-**Queue Health Check:**
+Expected output:
+```
+[timestamp] INFO   Redis connection established
+[timestamp] INFO   Async Core server running on localhost:3000
+```
+
+### 3. Start Worker (Terminal 2)
 ```bash
-curl http://localhost:3000/api/queue/health
+npm run worker:dev
 ```
 
-**Submit Emails (2 recipients):**
-```bash
-curl -X POST http://localhost:3000/api/jobs/email/jobs \
-  -H "Content-Type: application/json" \
-  -d '{
-    "recipients": ["alice@example.com", "bob@example.com"],
-    "subject": "Welcome",
-    "message": "This is a test email"
-  }'
+Expected output:
+```
+[timestamp] INFO   Email worker initialized
+[timestamp] INFO   Worker process started
 ```
 
-**Check Job Status:**
-```bash
-# Replace JOB_ID with actual ID from submission response
-curl http://localhost:3000/api/jobs/email/jobs/JOB_ID
-```
+### 4. Access Dashboard
+Open browser: http://localhost:3000
 
-**Queue Statistics:**
-```bash
-curl http://localhost:3000/api/jobs/email/stats
-```
+## Test Scenarios
 
-**Submit 10 Emails:**
+### Scenario 1: Submit Email Jobs
+1. Click "Add Job" in sidebar
+2. Enter recipients:
+   - test1@example.com
+   - test2@example.com
+3. Subject: "Test Email"
+4. Message: "This is a test email"
+5. Click "Submit Jobs"
+
+**Expected Result:**
+- Success message appears
+- Dashboard stats update
+- Jobs appear in "Jobs" page
+
+### Scenario 2: Monitor Job Processing
+1. Go to "Dashboard" page
+2. Verify stat cards update with real data:
+   - Total Jobs
+   - Pending
+   - Active
+   - Completed
+   - Failed
+3. View "Recent Jobs" table
+
+**Expected Result:**
+- Charts display real data
+- Tables update automatically every 30 seconds
+- Job status shows: waiting → active → completed
+
+### Scenario 3: View Queues
+1. Click "Queues" in sidebar
+2. Verify queue statistics display
+
+**Expected Result:**
+- Queue stats show accurate counts
+- Table displays email-queue metrics
+
+### Scenario 4: Check Failed Jobs & DLQ
+1. Go to "Failed Jobs" page
+2. View "Dead Letter Queue" page
+
+**Expected Result:**
+- Empty initially
+- Failed jobs appear after retry exhaustion
+- DLQ shows permanently failed jobs
+
+### Scenario 5: Search & Filter
+1. Use search bar to find jobs
+2. Use filters on Jobs page
+
+**Expected Result:**
+- Filter functionality works
+- Results update dynamically
+
+## API Endpoints Testing
+
+### Create Jobs
 ```bash
 curl -X POST http://localhost:3000/api/jobs/email/jobs \
   -H "Content-Type: application/json" \
   -d '{
-    "recipients": [
-      "user1@example.com",
-      "user2@example.com",
-      "user3@example.com",
-      "user4@example.com",
-      "user5@example.com",
-      "user6@example.com",
-      "user7@example.com",
-      "user8@example.com",
-      "user9@example.com",
-      "user10@example.com"
-    ],
-    "subject": "Bulk Email Test",
-    "message": "Testing bulk email processing"
+    "recipients": ["user@example.com"],
+    "subject": "Test",
+    "message": "Test message"
   }'
 ```
 
-## Testing Workflow
-
-### Step 1: Verify Server Health
-```bash
-curl http://localhost:3000/health
-```
-
-Expected Response:
-```json
-{
-  "success": true,
-  "data": {
-    "status": "healthy",
-    "service": "Async Core",
-    "timestamp": "2026-08-01T10:51:41.915Z"
-  }
-}
-```
-
-### Step 2: Verify Queue Health
-```bash
-curl http://localhost:3000/api/queue/health
-```
-
-### Step 3: Submit Email Jobs
-
-Submit an email to 2 recipients (creates 2 independent jobs):
-```bash
-curl -X POST http://localhost:3000/api/jobs/email/jobs \
-  -H "Content-Type: application/json" \
-  -d '{
-    "recipients": ["alice@example.com", "bob@example.com"],
-    "subject": "Welcome to Async Core",
-    "message": "Your background job is being processed"
-  }'
-```
-
-Expected Response:
+**Expected Response:**
 ```json
 {
   "success": true,
   "message": "Jobs queued successfully",
   "data": {
-    "totalJobs": 2,
-    "jobIds": ["emailXXXXXXXXXXX1abc", "emailXXXXXXXXXXX2def"]
+    "totalJobs": 1,
+    "jobIds": ["email-..."],
+    "timestamp": "2024-01-15T..."
   }
 }
 ```
 
-### Step 4: Monitor Queue Statistics
-
-Check how many jobs are waiting, active, completed, failed:
+### Get Job Status
 ```bash
-curl http://localhost:3000/api/jobs/email/stats
+curl http://localhost:3000/api/jobs/email/jobs/email-...
 ```
 
-Expected Response:
+**Expected Response:**
 ```json
 {
   "success": true,
   "data": {
-    "waiting": 1,
-    "active": 1,
-    "completed": 0,
-    "failed": 0,
-    "delayed": 0
-  }
-}
-```
-
-### Step 5: Track Individual Job Status
-
-Use a job ID from Step 3:
-```bash
-curl http://localhost:3000/api/jobs/email/jobs/emailXXXXXXXXXXX1abc
-```
-
-Possible Responses:
-
-**Active/Processing:**
-```json
-{
-  "success": true,
-  "data": {
-    "id": "emailXXXXXXXXXXX1abc",
-    "recipient": "alice@example.com",
-    "subject": "Welcome to Async Core",
-    "status": "active",
-    "progress": 50,
-    "attempts": 1,
-    "maxAttempts": 3
-  }
-}
-```
-
-**Completed:**
-```json
-{
-  "success": true,
-  "data": {
-    "id": "emailXXXXXXXXXXX1abc",
-    "recipient": "alice@example.com",
-    "subject": "Welcome to Async Core",
+    "id": "email-...",
+    "recipient": "user@example.com",
     "status": "completed",
     "progress": 100,
     "attempts": 1,
@@ -237,190 +134,123 @@ Possible Responses:
 }
 ```
 
-**Retrying (Failed then Delayed):**
+### Get Queue Stats
+```bash
+curl http://localhost:3000/api/jobs/email/stats
+```
+
+**Expected Response:**
 ```json
 {
   "success": true,
   "data": {
-    "id": "emailXXXXXXXXXXX1abc",
-    "recipient": "alice@example.com",
-    "subject": "Welcome to Async Core",
-    "status": "delayed",
-    "progress": 0,
-    "attempts": 1,
-    "maxAttempts": 3,
-    "failedReason": "Failed to send email to alice@example.com"
+    "waiting": 0,
+    "active": 0,
+    "completed": 5,
+    "failed": 0,
+    "delayed": 0,
+    "total": 5
   }
 }
 ```
 
-## Expected Job Lifecycle
-
-Each job follows this flow:
-
-```
-Submitted
-  ↓
-Queued (waiting in email-queue)
-  ↓
-Processing (worker picks up job)
-  ↓
-Success → Completed ✅
-  OR
-Failure → Retry with exponential backoff
-  ↓
-Attempt 2 (after 2 seconds)
-  ↓
-Success → Completed ✅
-  OR
-Failure → Retry again
-  ↓
-Attempt 3 (after 4 seconds)
-  ↓
-Success → Completed ✅
-  OR
-Failure → Moved to Dead Letter Queue 💀
-```
-
-## Error Testing
-
-### Test 1: Missing Recipients
+### Dashboard Overview
 ```bash
-curl -X POST http://localhost:3000/api/jobs/email/jobs \
-  -H "Content-Type: application/json" \
-  -d '{
-    "subject": "No Recipients",
-    "message": "This should fail"
-  }'
+curl http://localhost:3000/api/dashboard/overview
 ```
 
-Expected: **400 Bad Request**
-
-### Test 2: Empty Recipients Array
+### Queue Metrics
 ```bash
-curl -X POST http://localhost:3000/api/jobs/email/jobs \
-  -H "Content-Type: application/json" \
-  -d '{
-    "recipients": [],
-    "subject": "Empty Recipients",
-    "message": "This should fail"
-  }'
+curl http://localhost:3000/api/dashboard/queues
 ```
 
-Expected: **400 Bad Request**
-
-### Test 3: Missing Subject
+### Job History
 ```bash
-curl -X POST http://localhost:3000/api/jobs/email/jobs \
-  -H "Content-Type: application/json" \
-  -d '{
-    "recipients": ["test@example.com"],
-    "message": "No subject"
-  }'
+curl http://localhost:3000/api/dashboard/history?limit=10
 ```
 
-Expected: **400 Bad Request**
-
-### Test 4: Missing Message
+### Performance Metrics
 ```bash
-curl -X POST http://localhost:3000/api/jobs/email/jobs \
-  -H "Content-Type: application/json" \
-  -d '{
-    "recipients": ["test@example.com"],
-    "subject": "No Message"
-  }'
+curl http://localhost:3000/api/dashboard/metrics
 ```
 
-Expected: **400 Bad Request**
+## Verification Checklist
 
-### Test 5: Invalid Job ID
+- [ ] Server starts without errors
+- [ ] Worker process starts and logs initialization
+- [ ] Dashboard loads and displays UI
+- [ ] Redis connects successfully
+- [ ] Email jobs can be submitted
+- [ ] Job stats update in real-time
+- [ ] Charts render with data
+- [ ] Tables display job information
+- [ ] Navigation between pages works
+- [ ] Theme toggle works (light/dark)
+- [ ] Sidebar toggle works
+- [ ] No console errors
+- [ ] No "Invalid Date" values appear
+- [ ] All API endpoints return proper responses
+- [ ] Retry logic works (jobs retry on failure)
+- [ ] Failed jobs move to DLQ after max retries
+- [ ] Email worker processes jobs correctly
+- [ ] Progress tracking shows accurate values
+
+## Troubleshooting
+
+### Redis Connection Failed
+- Ensure Redis is running: `docker ps | grep redis`
+- Start Redis if needed: `docker run -d -p 6379:6379 redis:alpine`
+- Check Redis host/port in .env
+
+### Port 3000 Already in Use
+- Kill existing process: `lsof -i :3000 | grep LISTEN | awk '{print $2}' | xargs kill -9`
+- Or change PORT in .env
+
+### Worker Not Processing Jobs
+- Check worker logs
+- Verify Redis connection
+- Ensure worker process is running in separate terminal
+
+### Dashboard Not Updating
+- Check browser console for errors
+- Verify API endpoints are responding
+- Check server logs
+
+## Load Testing
+
+### Submit 100 Jobs
 ```bash
-curl http://localhost:3000/api/jobs/email/jobs/invalid-job-id-12345
+for i in {1..100}; do
+  curl -X POST http://localhost:3000/api/jobs/email/jobs \
+    -H "Content-Type: application/json" \
+    -d "{\"recipients\": [\"user${i}@example.com\"], \"subject\": \"Test ${i}\", \"message\": \"Message ${i}\"}"
+done
 ```
 
-Expected: **404 Not Found**
+**Expected Behavior:**
+- All jobs queue successfully
+- Worker processes them with configured concurrency
+- Dashboard updates with metrics
+- System remains responsive
 
-## API Endpoints Reference
+## Performance Metrics
 
-### Health & Status
+Expected performance on modern hardware:
+- Job submission: < 100ms
+- Job processing: 300-1000ms (depending on simulation)
+- Dashboard update: < 500ms
+- API response: < 100ms
 
-| Method | Endpoint | Purpose |
-|--------|----------|---------|
-| GET | `/health` | Server health check |
-| GET | `/api/queue/health` | Queue health check |
-| GET | `/api/queue/stats` | Generic queue stats |
+## Production Checklist
 
-### Email Queue Operations
-
-| Method | Endpoint | Purpose |
-|--------|----------|---------|
-| POST | `/api/jobs/email/jobs` | Submit email jobs (one per recipient) |
-| GET | `/api/jobs/email/jobs/:jobId` | Get individual job status |
-| GET | `/api/jobs/email/stats` | Email queue statistics |
-
-## Response Formats
-
-### Success Response
-```json
-{
-  "success": true,
-  "data": { /* response data */ }
-}
-```
-
-### Error Response
-```json
-{
-  "success": false,
-  "error": {
-    "message": "Error description"
-  }
-}
-```
-
-## Common Issues
-
-### Issue: "Connection refused"
-**Solution:** Ensure Redis is running and server/worker are started
-```bash
-# Check Redis
-redis-cli ping
-
-# Start server (Terminal 1)
-npm run dev
-
-# Start worker (Terminal 2)
-npm run worker:dev
-```
-
-### Issue: "Job not found"
-**Solution:** Job ID is incorrect or job has been removed (removeOnComplete is set to true)
-- Use correct job ID from the submission response
-- Check queue stats to see active jobs
-
-### Issue: "Max retries exceeded, moving to DLQ"
-**Solution:** This is expected behavior. Job failed 3 times and is now in Dead Letter Queue
-- Check logs in worker terminal
-- Job data is preserved in DLQ for investigation
-
-### Issue: Job stuck in "delayed" status
-**Solution:** Job is waiting for retry. Wait for the delay period:
-- Attempt 2: 2 seconds delay
-- Attempt 3: 4 seconds delay
-
-## Next Steps
-
-After testing is complete, you can:
-
-1. **Monitor in Real-Time**: Watch logs in server and worker terminals
-2. **Analyze Patterns**: Use queue stats to understand job flow
-3. **Dead Letter Queue**: Query DLQ for failed jobs (in production, implement manual recovery)
-4. **Scale Up**: Submit 100+ emails and monitor system performance
-5. **Implement Real SMTP**: Replace email simulation with actual Nodemailer integration
-
-## Performance Notes
-
-- Current implementation simulates email delivery with ~10% failure rate
-- Each job processes in ~500ms (simulated)
-- Concurrent processing: 5 jobs at a time (configurable via QUEUE_CONCURRENCY)
-- Retry strategy ensures reliability even with transient failures
+Before deploying to production:
+- [ ] Configure real SMTP for email sending
+- [ ] Set NODE_ENV=production
+- [ ] Configure Redis with persistence
+- [ ] Add authentication to API
+- [ ] Enable HTTPS
+- [ ] Setup monitoring/alerting
+- [ ] Configure log aggregation
+- [ ] Setup backup strategy
+- [ ] Test failure scenarios
+- [ ] Configure worker process management (PM2)

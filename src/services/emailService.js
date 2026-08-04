@@ -12,30 +12,13 @@ export const submitEmailJobs = async (recipients, subject, message) => {
   try {
     const queue = createQueue(QUEUE_NAMES.email);
 
-    const jobPromises = recipients.map((recipient, index) => {
-      // Generate simple alphanumeric jobId
-      const timestamp = Date.now();
-      const random = Math.random().toString(36).substr(2, 9);
-      const jobId = `email${timestamp}${index}${random}`;
-
-      return queue.add(
-        {
-          recipient,
-          subject,
-          message,
-          createdAt: new Date().toISOString(),
-        },
-        {
-          removeOnComplete: true,
-          removeOnFail: false,
-          attempts: 3,
-          backoff: {
-            type: 'exponential',
-            delay: 2000,
-          },
-          jobId,
-        }
-      );
+    const jobPromises = recipients.map((recipient) => {
+      return queue.add({
+        recipient,
+        subject,
+        message,
+        createdAt: new Date().toISOString(),
+      });
     });
 
     const jobs = await Promise.all(jobPromises);

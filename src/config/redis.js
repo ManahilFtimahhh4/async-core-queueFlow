@@ -21,15 +21,22 @@ export const createRedisConnection = () => {
     db: config.redis.db,
     lazyConnect: false,
     maxRetriesPerRequest: null,
-    enableReadyCheck: false,
+    enableReadyCheck: true,  // FIXED: Enable ready check so commands wait for connection
+    enableOfflineQueue: true,
     retryStrategy: (times) => {
       const delay = Math.min(times * 50, 2000);
       return delay;
     },
+    family: 4,
+    connectTimeout: 10000,
   });
 
   redisInstance.on('connect', () => {
     logger.info('Redis connected successfully');
+  });
+
+  redisInstance.on('ready', () => {
+    logger.info('Redis ready for commands');
   });
 
   redisInstance.on('error', (err) => {

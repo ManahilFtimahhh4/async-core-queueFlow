@@ -85,6 +85,11 @@ class SidebarManager {
             if (pageTitleElement) {
                 pageTitleElement.textContent = pageTitle;
             }
+
+            // Load page data if manager exists
+            if (window.pageManager) {
+                window.pageManager.loadPage(pageId);
+            }
         }
 
         // Close sidebar on mobile when navigating

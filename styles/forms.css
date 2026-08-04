@@ -1,0 +1,312 @@
+/**
+ * Form Styles
+ * Comprehensive form, input, and control styling
+ */
+
+.form-container {
+    width: 100%;
+    padding: 2rem 0;
+}
+
+.form-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 2rem;
+    box-shadow: var(--shadow-sm);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.form-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.form-input,
+.form-select {
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background-color: var(--input-bg);
+    color: var(--text-primary);
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.form-input:focus,
+.form-select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-alpha);
+    background-color: var(--input-bg);
+}
+
+.form-input:disabled,
+.form-select:disabled {
+    background-color: var(--bg-secondary);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.form-input.textarea {
+    resize: vertical;
+    min-height: 120px;
+    font-family: 'Courier New', monospace;
+}
+
+.form-hint {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-top: 0.5rem;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.form-message {
+    display: none;
+    padding: 1rem;
+    border-radius: 6px;
+    margin-top: 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.form-message.success {
+    background-color: rgba(22, 163, 74, 0.1);
+    color: #16a34a;
+    border: 1px solid rgba(22, 163, 74, 0.3);
+    display: block;
+}
+
+.form-message.error {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    display: block;
+}
+
+/* Filter Controls */
+.filter-controls {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.filter-select,
+.filter-input {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background-color: var(--input-bg);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+}
+
+.filter-select:focus,
+.filter-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-alpha);
+}
+
+.filter-input {
+    flex: 1;
+    min-width: 200px;
+}
+
+/* Checkbox and Labels */
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background-color 0.2s ease;
+}
+
+.checkbox-label:hover {
+    background-color: var(--bg-secondary);
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 1rem;
+    height: 1rem;
+    cursor: pointer;
+    accent-color: var(--primary);
+}
+
+/* Settings Groups */
+.settings-group {
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.settings-group:last-child {
+    border-bottom: none;
+}
+
+.settings-group h4 {
+    font-size: 0.875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+    letter-spacing: 0.5px;
+}
+
+/* Documentation */
+.docs-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+    padding: 2rem 0;
+}
+
+.docs-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 2rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.docs-card h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+}
+
+.docs-card p {
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+}
+
+.docs-card code {
+    background-color: var(--bg-secondary);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85em;
+    color: var(--primary);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .form-container {
+        padding: 1rem;
+    }
+
+    .form-card {
+        padding: 1.5rem;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .filter-controls {
+        flex-direction: column;
+    }
+
+    .filter-input {
+        width: 100%;
+    }
+
+    .docs-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* Code Display in Tables */
+.data-table td code {
+    background-color: var(--bg-secondary);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85em;
+    color: var(--primary);
+}
+
+/* Log Viewer */
+.log-viewer {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 1rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    max-height: 500px;
+    overflow-y: auto;
+    color: var(--text-secondary);
+}
+
+.log-entry {
+    line-height: 1.6;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.log-entry:last-child {
+    border-bottom: none;
+}
+
+.log-time {
+    color: var(--primary);
+    margin-right: 0.5rem;
+}
+
+.log-level {
+    font-weight: 700;
+    margin-right: 0.5rem;
+}
+
+.log-level.info {
+    color: var(--primary);
+}
+
+.log-level.warn {
+    color: var(--warning);
+}
+
+.log-level.error {
+    color: var(--danger);
+}
+
+.log-level.debug {
+    color: var(--text-secondary);
+}
+
+.log-message {
+    color: var(--text-primary);
+}

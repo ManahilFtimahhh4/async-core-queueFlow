@@ -1,4 +1,6 @@
 import { submitEmailJobs, getEmailJobStatus, getEmailQueueStats } from '../services/emailService.js';
+import { createQueue } from '../config/bullmq.js';
+import { QUEUE_NAMES } from '../queues/index.js';
 import { logger } from '../utils/logger.js';
 
 /**
@@ -20,20 +22,33 @@ export const submitEmails = async (req, res, next) => {
       });
     }
 
-    if (!subject || typeof subject !== 'string') {
+    if (!subject || typeof subject !== 'string' || subject.trim().length === 0) {
       return res.status(400).json({
         success: false,
         error: {
-          message: 'Subject is required and must be a string',
+          message: 'Subject is required and must be a non-empty string',
         },
       });
     }
 
-    if (!message || typeof message !== 'string') {
+    if (!message || typeof message !== 'string' || message.trim().length === 0) {
       return res.status(400).json({
         success: false,
         error: {
-          message: 'Message is required and must be a string',
+          message: 'Message is required and must be a non-empty string',
+        },
+      });
+    }
+
+    // Validate email addresses
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const invalidEmails = recipients.filter(email => !emailRegex.test(email));
+    
+    if (invalidEmails.length > 0) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          message: `Invalid email addresses: ${invalidEmails.join(', ')}`,
         },
       });
     }
@@ -119,4 +134,76 @@ export default {
   submitEmails,
   getJobStatus,
   getQueueStats,
+};
+
+export const retryJob = async (req, res, next) => {
+  try {
+    const { jobId } = req.params;
+
+    if (!jobId) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          message: 'Job ID is required',
+        },
+      });
+    }
+
+    // Get the job from DLQ or regular queue
+    const queue = createQueue(QUEUE_NAMES.email);
+    const dlq = createQueue(QUEUE_NAMES.emailDLQ);
+    
+    let job = await queue.getJob(jobId);
+    let fromDLQ = false;
+    
+    if (!job) {
+      job = await dlq.getJob(jobId);
+      fromDLQ = true;
+    }
+
+    if (!job) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          message: `Job ${jobId} not found in queue or DLQ`,
+        },
+      });
+    }
+
+    // If from DLQ, need to extract original data
+    let jobData = job.data;
+    if (fromDLQ && job.data.originalData) {
+      jobData = job.data.originalData;
+    }
+
+    // Create new job in main queue with reset attempts
+    const newJob = await queue.add(jobData, {
+      removeOnComplete: true,
+      removeOnFail: false,
+      attempts: 3,
+      backoff: {
+        type: 'exponential',
+        delay: 2000,
+      },
+    });
+
+    logger.info(`Job retry initiated`, {
+      originalJobId: jobId,
+      newJobId: newJob.id,
+      fromDLQ,
+    });
+
+    res.status(202).json({
+      success: true,
+      message: 'Job retry initiated',
+      data: {
+        originalJobId: jobId,
+        newJobId: newJob.id,
+        timestamp: new Date().toISOString(),
+      },
+    });
+  } catch (err) {
+    logger.error(`Retry job failed`, { jobId: req.params.jobId, error: err.message });
+    next(err);
+  }
 };

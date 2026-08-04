@@ -189,26 +189,33 @@ export const getJobHistory = async (queueName, limit = 20) => {
 
     for (const job of completed) {
       const state = await job.getState();
+      const finishedTime = job.finishedOn || Date.now();
+      const startedTime = job.startedOn || finishedTime;
       history.push({
         id: job.id,
         data: job.data,
         status: 'completed',
-        attempts: job.attemptsMade,
+        attempts: job.attemptsMade || 1,
         progress: 100,
-        startedOn: job.startedOn,
-        finishedOn: job.finishedOn,
-        executionTime: job.finishedOn - job.startedOn,
+        startedOn: startedTime,
+        finishedOn: finishedTime,
+        executionTime: finishedTime - startedTime,
+        createdAt: new Date(job.timestamp || Date.now()).toISOString(),
+        type: job.data?.recipient ? 'email' : 'unknown',
       });
     }
 
     for (const job of failed) {
+      const finishedTime = job.finishedOn || Date.now();
       history.push({
         id: job.id,
         data: job.data,
         status: 'failed',
-        attempts: job.attemptsMade,
-        failedReason: job.failedReason,
-        finishedOn: job.finishedOn,
+        attempts: job.attemptsMade || 1,
+        failedReason: job.failedReason || 'Unknown error',
+        finishedOn: finishedTime,
+        createdAt: new Date(job.timestamp || Date.now()).toISOString(),
+        type: job.data?.recipient ? 'email' : 'unknown',
       });
     }
 

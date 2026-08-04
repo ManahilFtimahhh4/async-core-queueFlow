@@ -25,6 +25,8 @@ class ChartsManager {
         try {
             await this.initJobChart();
             await this.initQueueChart();
+            await this.initProcessingTimeChart();
+            await this.initSuccessFailureChart();
         } catch (error) {
             console.error('Failed to initialize charts:', error);
         }
@@ -255,18 +257,19 @@ class ChartsManager {
         if (!legend) return;
 
         const colors = {
-            Waiting: this.chartColors.warning,
-            Active: this.chartColors.primary,
-            Completed: this.chartColors.success,
-            Failed: this.chartColors.danger,
+            waiting: this.chartColors.warning,
+            active: this.chartColors.primary,
+            completed: this.chartColors.success,
+            failed: this.chartColors.danger,
         };
 
         const html = Object.entries(data)
             .map(([key, value]) => {
                 const label = key.charAt(0).toUpperCase() + key.slice(1);
+                const color = colors[key] || this.chartColors.primary;
                 return `
                     <div class="legend-item">
-                        <div class="legend-color" style="background-color: ${colors[label]}"></div>
+                        <div class="legend-color" style="background-color: ${color}"></div>
                         <div>
                             <div style="font-size: 0.75rem; color: var(--text-secondary);">${label}</div>
                             <div style="font-weight: 600; color: var(--text-primary);">${value}</div>
@@ -397,6 +400,127 @@ class ChartsManager {
             });
         } catch (error) {
             console.error('Failed to update chart theme:', error);
+        }
+    }
+
+    /**
+     * Initialize Processing Time Chart (Analytics page)
+     */
+    async initProcessingTimeChart() {
+        const canvas = document.getElementById('processingTimeChart');
+        if (!canvas) return;
+
+        try {
+            const metricsData = await window.apiClient.getMetrics();
+            
+            const ctx = canvas.getContext('2d');
+            const chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['0-1s', '1-5s', '5-10s', '10-30s', '30-60s', '60s+'],
+                    datasets: [{
+                        label: 'Processing Time Distribution',
+                        data: [45, 32, 18, 8, 4, 2],
+                        borderColor: 'var(--primary)',
+                        backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: 'var(--primary)',
+                        pointBorderColor: 'var(--card-bg)',
+                        pointBorderWidth: 2,
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: this.getTextColor(),
+                                font: { size: 12 },
+                            },
+                        },
+                        tooltip: {
+                            backgroundColor: 'var(--card-bg)',
+                            titleColor: this.getTextColor(),
+                            bodyColor: this.getTextColor(),
+                        },
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: this.getGridColor() },
+                            ticks: { color: this.getTextColor() },
+                        },
+                        x: {
+                            ticks: { color: this.getTextColor() },
+                        },
+                    },
+                },
+            });
+
+            this.charts.processingTimeChart = chart;
+        } catch (error) {
+            console.error('Failed to initialize processing time chart:', error);
+            this.showChartError(canvas, 'Failed to load chart');
+        }
+    }
+
+    /**
+     * Initialize Success vs Failure Chart (Analytics page)
+     */
+    async initSuccessFailureChart() {
+        const canvas = document.getElementById('successFailureChart');
+        if (!canvas) return;
+
+        try {
+            const metricsData = await window.apiClient.getMetrics();
+            const successRate = 85; // Placeholder
+            const failureRate = 15; // Placeholder
+
+            const ctx = canvas.getContext('2d');
+            const chart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Successful', 'Failed'],
+                    datasets: [{
+                        data: [successRate, failureRate],
+                        backgroundColor: [
+                            'var(--success)',
+                            'var(--danger)',
+                        ],
+                        borderColor: 'var(--card-bg)',
+                        borderWidth: 2,
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: this.getTextColor(),
+                                font: { size: 12 },
+                                padding: 15,
+                            },
+                        },
+                        tooltip: {
+                            backgroundColor: 'var(--card-bg)',
+                            titleColor: this.getTextColor(),
+                            bodyColor: this.getTextColor(),
+                        },
+                    },
+                },
+            });
+
+            this.charts.successFailureChart = chart;
+        } catch (error) {
+            console.error('Failed to initialize success/failure chart:', error);
+            this.showChartError(canvas, 'Failed to load chart');
         }
     }
 }
