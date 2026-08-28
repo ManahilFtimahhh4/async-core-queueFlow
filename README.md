@@ -366,7 +366,7 @@ npm test                 # Run tests
 - [ ] Setup error tracking (Sentry)
 - [ ] Configure backup strategy
 
-## Technology Stack
+## Technology Stack/Archetichtural planning 
 
 | Layer | Technology | Purpose |
 |-------|-----------|---------|
